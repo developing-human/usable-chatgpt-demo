@@ -1,0 +1,47 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.input {
+  padding: 5px;
+  font-size: 16px;
+}
+
+.submit {
+  padding: 5px 10px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.suggestion {
+  margin-top: 20px;
+}
+
+.suggestion-label {
+  font-size: 24px;
+  color: #333;
+}
+
+.suggestion-description {
+  font-size: 18px;
+  color: #666;
+}
+
+#root {
+    max-width: 800px;
+    margin: auto;
+}
+
+.label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
