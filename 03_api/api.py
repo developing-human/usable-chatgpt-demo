@@ -4,6 +4,7 @@ import sys
 import json
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 class Suggestion(BaseModel):
     label: str
@@ -14,7 +15,7 @@ def troubleshoot_car(sound: str, location: str) -> list[Suggestion]:
     prompt = f"""Your goal is to help me troubleshoot a problem with my car.  I'm hearing a {sound} near {location}.  Suggest 3 ideas for determining the issue.
 
 Please format your response like:
-label: Brief label for this section,
+label: Brief label for this section
 description: Describe what the problem may be and how to confirm it
 
 For example:
@@ -72,4 +73,14 @@ if openai.api_key is None:
     exit(1)
 
 app = create_app()
+
+# TODO: Very permissive CORS for development!  
+# TODO: In a production application, make this more restrictive.
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+)
 

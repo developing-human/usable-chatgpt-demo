@@ -80,11 +80,7 @@ def parse_suggestions(chunks: Iterator[str]) -> Iterator[Suggestion]:
 def create_app() -> FastAPI:
     app = FastAPI()
 
-    @app.get("/search")
-    def search(sound: str, location: str) -> list[Suggestion]:
-        return troubleshoot_car(sound, location)
-
-    @app.websocket("/ws")
+    @app.websocket("/search")
     async def search(websocket: WebSocket, sound: str, location: str) -> list[Suggestion]:
         print(f"Before accept: {sound} {location}")
         await websocket.accept()

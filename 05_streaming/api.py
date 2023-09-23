@@ -6,6 +6,7 @@ from fastapi import FastAPI, WebSocket
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Iterator
+from openai.openai_object import OpenAIObject
 
 class Suggestion(BaseModel):
     label: str
@@ -28,7 +29,9 @@ description: 40-50 words describing what the issue may be
 """
 
     # Calls ChatGPT 3.5 with the above prompt.
-    response_chunks = openai.ChatCompletion.create(
+    # Receives back an Iterator of responses, each with a few characters
+    # of the response wrapped in JSON.
+    response_stream = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
@@ -38,11 +41,13 @@ description: 40-50 words describing what the issue may be
     )
         
     # Extracts the text content from the response.
-    #response_content = response.choices[0].message["content"]
-    chunks = (rc.choices[0].get("delta", {}).get("content") for rc in response_chunks)
+    chunks = (extract_content(r) for r in response_stream)
 
     # Parses the response into Suggestions and returns them
     return parse_suggestions(chunks)
+
+def extract_content(gpt_response):
+    return gpt_response.choices[0].get("delta", {}).get("content")
 
 
 # Parses ChatGPT's response into a list of suggestions
@@ -82,15 +87,9 @@ def to_lines(chunks: Iterator[str]) -> Iterator[str]:
 def create_app() -> FastAPI:
     app = FastAPI()
 
-    @app.get("/search")
-    def search(sound: str, location: str) -> list[Suggestion]:
-        return troubleshoot_car(sound, location)
-
-    @app.websocket("/ws")
+    @app.websocket("/search")
     async def search(websocket: WebSocket, sound: str, location: str) -> list[Suggestion]:
-        print(f"Before accept: {sound} {location}")
         await websocket.accept()
-        print("After accept")
         for suggestion in troubleshoot_car(sound, location):
             print(f"Sending a suggestion: {suggestion.json()}")
             await websocket.send_text(suggestion.json())
@@ -107,8 +106,8 @@ if openai.api_key is None:
 
 app = create_app()
 
-# Very permissive CORS for development!  
-# In a real production application, make this much more restrictive.
+# TODO: Very permissive CORS for development!  
+# TODO: In a production application, make this more restrictive.
 app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

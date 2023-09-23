@@ -74,8 +74,8 @@ if openai.api_key is None:
 
 app = create_app()
 
-# Very permissive CORS for development!  
-# In a real production application, make this much more restrictive.
+# TODO: Very permissive CORS for development!  
+# TODO: In a production application, make this more restrictive.
 app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

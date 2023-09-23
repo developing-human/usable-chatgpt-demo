@@ -14,7 +14,7 @@ def troubleshoot_car(sound: str, location: str) -> list[Suggestion]:
     prompt = f"""Your goal is to help me troubleshoot a problem with my car.  I'm hearing a {sound} near {location}.  Suggest 3 ideas for determining the issue.
 
 Please format your response like:
-label: Brief label for this section,
+label: Brief label for this section
 description: Describe what the problem may be and how to confirm it
 
 For example:
@@ -56,21 +56,20 @@ def parse_suggestions(text: str) -> list[Suggestion]:
 
     return suggestions
 
-if __name__ == "__main__":
-    # Exit early if incorrect arguments were provided
-    if len(sys.argv) != 3:
-        print("Usage: python3 gpt_prompt.py sound location")
-        exit(1)
+# Exit early if incorrect arguments were provided
+if len(sys.argv) != 3:
+    print("Usage: python3 gpt_prompt.py sound location")
+    exit(1)
 
-    # Exit early if the api key is not provided
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    if openai.api_key is None:
-        print("Must define environment variable OPENAI_API_KEY")
-        exit(1)
+# Exit early if the api key is not provided
+openai.api_key = os.getenv("OPENAI_API_KEY")
+if openai.api_key is None:
+    print("Must define environment variable OPENAI_API_KEY")
+    exit(1)
 
-    sound = sys.argv[1]
-    location = sys.argv[2]
+sound = sys.argv[1]
+location = sys.argv[2]
 
-    suggestions = troubleshoot_car(sound, location)
-    print(json.dumps([s.__dict__ for s in suggestions]))
+suggestions = troubleshoot_car(sound, location)
+print(json.dumps([s.__dict__ for s in suggestions]))
 
