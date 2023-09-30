@@ -1,7 +1,5 @@
 import openai
 import os
-import sys
-import json
 from fastapi import FastAPI, WebSocket
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,10 +12,12 @@ class Suggestion(BaseModel):
 
 # Uses ChatGPT to offer troubleshooting suggestions based on sound & location
 def troubleshoot_car(sound: str, location: str) -> Iterator[Suggestion]:
-    prompt = f"""Your goal is to help me troubleshoot a problem with my car.  I'm hearing a {sound} near {location}.  Suggest 3 ideas for determining the issue.
+    prompt = f"""Your goal is to help me troubleshoot a problem with my car.  
+I'm hearing a {sound} near {location}.  
+Suggest 3 ideas for determining the issue.
 
 Please format your response like:
-label: Brief label for this section,
+label: Brief label for this section
 description: Describe what the problem may be and how to confirm it
 
 For example:
@@ -53,13 +53,18 @@ def extract_content(gpt_response):
 # Parses ChatGPT's response into a list of suggestions
 def parse_suggestions(chunks: Iterator[str]) -> Iterator[Suggestion]:
     for line in to_lines(chunks):
+        # Label? Extract the text and store it.
         if line.startswith("label:"):
             label = line.split(":")[1].strip()
+
+        # Description? Extract the text, create suggestion.
         elif line.startswith("description:"):
             description = line.split(":")[1].strip()
             yield Suggestion(label=label, description=description)
 
 
+# Takes an iterator over small strings
+# Returns an iterator over lines
 def to_lines(chunks: Iterator[str]) -> Iterator[str]:
     current_line = ""
 
@@ -68,15 +73,22 @@ def to_lines(chunks: Iterator[str]) -> Iterator[str]:
             continue
 
         if "\n" in chunk:
+            # Chunk has newline, split into multiple lines
             lines = chunk.split("\n")
+
+            # Part before the newline is part of current line
             current_line += lines[0]
+
+            # Got an entire line, emit it, reset it
             yield current_line
             current_line = ""
 
-            # If there is a part after the newline, store it as a new current_line
+            # If there is a part after the newline, 
+            # store it as a new current_line
             if len(lines) > 1:
                 current_line = lines[1]
         else:
+            # No newline, add to current line
             current_line += chunk
 
     # Yield any remaining incomplete line after the loop

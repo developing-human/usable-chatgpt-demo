@@ -1,7 +1,5 @@
 import openai
 import os
-import sys
-import json
 from fastapi import FastAPI, WebSocket
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +11,9 @@ class Suggestion(BaseModel):
 
 # Uses ChatGPT to offer troubleshooting suggestions based on sound & location
 def troubleshoot_car(sound: str, location: str) -> Iterator[Suggestion]:
-    prompt = f"""Your goal is to help me troubleshoot a problem with my car.  I'm hearing a {sound} near {location}.  Suggest 3 ideas for determining the issue.  
+    prompt = f"""Your goal is to help me troubleshoot a problem with my car.  
+I'm hearing a {sound} near {location}.  
+Suggest 3 ideas for determining the issue.
 
 Please format your response like:
 label: Brief label for this section
@@ -28,7 +28,9 @@ description: 40-50 words describing what the issue may be
 """
 
     # Calls ChatGPT 3.5 with the above prompt.
-    response_chunks = openai.ChatCompletion.create(
+    # Receives back an Iterator of responses, each with a few characters
+    # of the response wrapped in JSON.
+    response_stream = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
@@ -38,13 +40,18 @@ description: 40-50 words describing what the issue may be
     )
         
     # Extracts the text content from the response.
-    chunks = (rc.choices[0].get("delta", {}).get("content") for rc in response_chunks)
+    chunks = (extract_content(r) for r in response_stream)
 
     # Parses the response into Suggestions and returns them
     return parse_suggestions(chunks)
 
+def extract_content(gpt_response):
+    return gpt_response.choices[0].get("delta", {}).get("content")
 
-# Parses ChatGPT's response into a list of suggestions
+
+# Takes an iterator over small strings
+# Returns an iterator over Suggestions
+# Suggestions have full labels, but small parts of descriptions
 def parse_suggestions(chunks: Iterator[str]) -> Iterator[Suggestion]:
     current_line = ""
     current_label = None
@@ -54,8 +61,8 @@ def parse_suggestions(chunks: Iterator[str]) -> Iterator[Suggestion]:
         if chunk is None:
             continue
 
-        # The chunk may or may not have a newline in it.  Only use the part before
-        # the newline for now.
+        # The chunk may or may not have a newline in it.  
+        # Only use the part before the newline for now.
         lines = chunk.split("\n")
         current_line += lines[0]
 
@@ -82,10 +89,9 @@ def create_app() -> FastAPI:
 
     @app.websocket("/search")
     async def search(websocket: WebSocket, sound: str, location: str) -> list[Suggestion]:
-        print(f"Before accept: {sound} {location}")
         await websocket.accept()
-        print("After accept")
         for suggestion in troubleshoot_car(sound, location):
+            print(f"Sending a suggestion: {suggestion.json()}")
             await websocket.send_text(suggestion.json())
 
         await websocket.close()
@@ -100,8 +106,8 @@ if openai.api_key is None:
 
 app = create_app()
 
-# Very permissive CORS for development!  
-# In a real production application, make this much more restrictive.
+# TODO: Very permissive CORS for development!  
+# TODO: In a production application, make this more restrictive.
 app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

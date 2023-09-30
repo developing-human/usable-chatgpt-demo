@@ -19,6 +19,7 @@ function App() {
     ws.onmessage = (event) => {
       console.log(event.data);
       setSuggestions((prevSuggestions) => {
+        // A new list, which is the old list plus the new suggestion
         return [...prevSuggestions, JSON.parse(event.data)];
       });
     };

@@ -14,27 +14,36 @@ function App() {
     setLoading(true);
 
     const ws = new WebSocket(
-      `ws://192.168.1.10:8000/search?sound=${sound}&location=${where}`
+      `ws://localhost:8000/search?sound=${sound}&location=${where}`
     );
     ws.onmessage = (event) => {
       console.log(event.data);
       setSuggestions((prevSuggestions) => {
         const newSuggestion = JSON.parse(event.data);
-        const index = prevSuggestions.findIndex(
+
+        // Try to find existing Suggestion with same label
+        const existingSuggestionIndex = prevSuggestions.findIndex(
           (s) => s.label === newSuggestion.label
         );
 
+        // Copy the previous suggestions to return a new list
         const newSuggestions = prevSuggestions.slice();
-        if (index === -1) {
+
+        if (existingSuggestionIndex === -1) {
+          // Not found, add new suggestion to list
+          // Move description_delta into description
           newSuggestions.push({
             ...newSuggestion,
             description: newSuggestion.description_delta,
           });
         } else {
-          newSuggestions[index] = {
-            ...newSuggestions[index],
+          // Found existing suggestion, so update it
+          // Replace suggestion by taking the old one and
+          // adding the description_delta to the description
+          newSuggestions[existingSuggestionIndex] = {
+            ...newSuggestions[existingSuggestionIndex],
             description:
-              newSuggestions[index].description +
+              newSuggestions[existingSuggestionIndex].description +
               newSuggestion.description_delta,
           };
         }

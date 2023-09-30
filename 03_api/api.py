@@ -1,7 +1,5 @@
 import openai
 import os
-import sys
-import json
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +10,9 @@ class Suggestion(BaseModel):
 
 # Uses ChatGPT to offer troubleshooting suggestions based on sound & location
 def troubleshoot_car(sound: str, location: str) -> list[Suggestion]:
-    prompt = f"""Your goal is to help me troubleshoot a problem with my car.  I'm hearing a {sound} near {location}.  Suggest 3 ideas for determining the issue.
+    prompt = f"""Your goal is to help me troubleshoot a problem with my car.  
+I'm hearing a {sound} near {location}.  
+Suggest 3 ideas for determining the issue.
 
 Please format your response like:
 label: Brief label for this section
@@ -45,11 +45,16 @@ description: 40-50 words describing what the issue may be
 # Parses ChatGPT's response into a list of suggestions
 def parse_suggestions(text: str) -> list[Suggestion]:
     suggestions = []
+
+    # Split the response into lines
     lines = text.strip().split('\n')
 
     for line in lines:
+        # Label? Extract the text and store it.
         if line.startswith("label:"):
             label = line.split(":")[1].strip()
+
+        # Description? Extract the text, create suggestion.
         elif line.startswith("description:"):
             description = line.split(":")[1].strip()
             suggestion = Suggestion(label=label, description=description)
