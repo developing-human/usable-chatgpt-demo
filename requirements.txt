@@ -1,6 +1,5 @@
-fastapi==0.103.1
-# openai==0.28.0
-websockets==11.0.3
-openai==1.9.0
+fastapi==0.109.2
+websockets==12.0
+openai==1.12.0
 python-dotenv==1.0.1
-pydantic==2.5.3
+pydantic==2.6.1
