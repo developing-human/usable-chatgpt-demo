@@ -1,9 +1,10 @@
-import openai
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Iterator
+from openai import OpenAI
 
 class Suggestion(BaseModel):
     label: str
@@ -11,6 +12,7 @@ class Suggestion(BaseModel):
 
 # Uses ChatGPT to offer troubleshooting suggestions based on sound & location
 def troubleshoot_car(sound: str, location: str) -> Iterator[Suggestion]:
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     prompt = f"""Your goal is to help me troubleshoot a problem with my car.  
 I'm hearing a {sound} near {location}.  
 Suggest 3 ideas for determining the issue.
@@ -30,14 +32,12 @@ description: 40-50 words describing what the issue may be
     # Calls ChatGPT 3.5 with the above prompt.
     # Receives back an Iterator of responses, each with a few characters
     # of the response wrapped in JSON.
-    response_stream = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt},
-        ],
-        stream=True,
-    )
+    response_stream = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": prompt},
+    ],
+    stream=True)
         
     # Extracts the text content from the response.
     chunks = (extract_content(r) for r in response_stream)
@@ -46,7 +46,7 @@ description: 40-50 words describing what the issue may be
     return parse_suggestions(chunks)
 
 def extract_content(gpt_response):
-    return gpt_response.choices[0].get("delta", {}).get("content")
+    return gpt_response.choices[0].delta.content or ""
 
 
 # Takes an iterator over small strings
@@ -99,8 +99,9 @@ def create_app() -> FastAPI:
     return app
 
 # Exit early if the api key is not provided
-openai.api_key = os.getenv("OPENAI_API_KEY")
-if openai.api_key is None:
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+if api_key is None:
     print("Must define environment variable OPENAI_API_KEY")
     exit(1)
 

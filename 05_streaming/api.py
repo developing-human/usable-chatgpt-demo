@@ -42,9 +42,6 @@ description: 40-50 words describing what the issue may be
     # Extracts the text content from the response.
     chunks = (extract_content(r) for r in response_stream)
     
-    # for chunk in response_stream:
-    #     print(chunk.choices[0].delta.content or "", end="")
-
     # Parses the response into Suggestions and returns them
     return parse_suggestions(chunks)
 
