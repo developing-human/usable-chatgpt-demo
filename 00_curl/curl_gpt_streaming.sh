@@ -1,3 +1,7 @@
+set -a
+source ../.env
+set +a 
+
 curl https://api.openai.com/v1/chat/completions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "Content-Type: application/json" \
