@@ -102,8 +102,8 @@ def create_app() -> FastAPI:
     async def search(websocket: WebSocket, sound: str, location: str) -> list[Suggestion]:
         await websocket.accept()
         for suggestion in troubleshoot_car(sound, location):
-            print(f"Sending a suggestion: {suggestion.json()}")
-            await websocket.send_text(suggestion.json())
+            print(f"Sending a suggestion: {suggestion.model_dump_json()}")
+            await websocket.send_text(suggestion.model_dump_json())
 
         await websocket.close()
 
