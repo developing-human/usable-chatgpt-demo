@@ -29,11 +29,13 @@ description: 40-50 words describing what the issue may be
 """
 
     # Calls ChatGPT 3.5 with the above prompt.
-    response = client.chat.completions.create(model="gpt-3.5-turbo",
-    messages=[
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": prompt},
-    ])
+        ],
+    )
         
     # Extracts the text content from the response.
     response_content = response.choices[0].message.content

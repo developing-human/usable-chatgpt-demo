@@ -32,12 +32,14 @@ description: 40-50 words describing what the issue may be
     # Calls ChatGPT 3.5 with the above prompt.
     # Receives back an Iterator of responses, each with a few characters
     # of the response wrapped in JSON.
-    response_stream = client.chat.completions.create(model="gpt-3.5-turbo",
-    messages=[
+    response_stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": prompt},
-    ],
-    stream=True)
+        ],
+        stream=True
+    )
         
     # Extracts the text content from the response.
     chunks = (extract_content(r) for r in response_stream)
