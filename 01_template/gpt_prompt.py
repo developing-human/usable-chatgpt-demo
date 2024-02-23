@@ -1,8 +1,11 @@
-import openai
 import os
 import sys
+from openai import OpenAI
+from dotenv import load_dotenv
+
 
 def do_the_thing(arg1: str, arg2: str) -> str:
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     prompt = f"""Dear ChatGPT, 
 
     Please do the thing with {arg1} and {arg2}.
@@ -22,8 +25,9 @@ if len(sys.argv) != 3:
     exit(1)
 
 # Exit early if the api key is not provided
-openai.api_key = os.getenv("OPENAI_API_KEY")
-if openai.api_key is None:
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+if api_key is None:
     print("Must define environment variable OPENAI_API_KEY")
     exit(1)
 

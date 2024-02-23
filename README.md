@@ -25,6 +25,22 @@ from.
 
 ### Setup
 
+#### Get an OpenAI key
+Go to [OpenAI](https://platform.openai.com/signup) to pay for an OpenAI key
+
+Rename `.env.example` to `.env`
+```
+mv .env.example .env
+```
+
+Finally, add your custom OpenAI API key in quotes in that `.env` file
+```
+OPENAI_API_KEY="fake-api-key-oisAiH29375iH2k3j5lKh"
+
+```
+
+
+#### Create a virtual environment
 ```
 # Create a virtualenv for this project
 python3 -m venv venv
@@ -32,7 +48,9 @@ python3 -m venv venv
 # Activate the virtualenv
 # Note: when done, deactivate the venv with: deactivate
 source venv/bin/active
-
+```
+#### Install remaining Python dependencies
+```
 # uvicorn lets us run the FastAPI application
 pip3 install uvicorn
 
@@ -42,8 +60,8 @@ pip3 install -r requirements.txt
 
 ### Running examples
 - Change into directory for phase of project you're working with
-- Start the python backend with `uvicorn api:app --reload`
-- (For 4-6) run `npm install` then `npm start`
+- Starting with step 3, start the python backend with `uvicorn api:app --reload`
+- (For 4-6) run `npm install` then `npm run dev`
 
 
 ### Tools
